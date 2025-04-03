@@ -1,0 +1,32 @@
+{
+  "name": "playwright-e2e-automation-parabank",
+  "version": "1.0.0",
+  "description": "A Playwright TypeScript test automation framework for end-to-end UI and API validation of the Para Bank application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:chrome": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:safari": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project=\"Mobile Chrome - Pixel 5\" --project=\"Mobile Safari - iPhone 12\" --project=\"Mobile Safari - iPhone SE\"",
+    "test:ui": "playwright test --ui",
+    "show-report": "playwright show-report",
+    "debug": "playwright test --debug"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AniketNeogy/playwright-e2e-automation-parabank.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AniketNeogy/playwright-e2e-automation-parabank/issues"
+  },
+  "homepage": "https://github.com/AniketNeogy/playwright-e2e-automation-parabank#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "@types/node": "^22.14.0"
+  }
+}
