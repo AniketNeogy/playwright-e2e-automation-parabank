@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './base.page';
+import { AccountsOverviewPage } from './accounts-overview.page';
 
 export class LoginPage extends BasePage {
     // Login form elements
@@ -40,6 +41,7 @@ export class LoginPage extends BasePage {
         await this.locator(this.passwordInput).fill(password);
         await this.locator(this.loginButton).click();
         await this.waitForNavigation();
+        return new AccountsOverviewPage(this.page);
     }
 
     /**

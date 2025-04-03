@@ -23,8 +23,6 @@ test.describe.serial('User Registration and Login Flow', () => {
     let userData: TestUser;
 
     test('User Registration - Create a new user with random credentials', async ({ page }) => {
-        // Increase timeout for this test
-        test.setTimeout(120000);
         
         // Arrange
         console.log('Starting user registration test');
