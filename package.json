@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/AniketNeogy/playwright-e2e-automation-parabank#readme",
   "devDependencies": {
+    "@faker-js/faker": "^9.6.0",
     "@playwright/test": "^1.51.1",
     "@types/node": "^22.14.0"
   }
