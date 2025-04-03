@@ -5,24 +5,35 @@ export class TransferFundsPage extends BasePage {
     // Base selectors
     private readonly rightPanel = 'div#rightPanel';
     
+    // Form containers
+    private readonly formContainer = '#showForm';
+    private readonly resultContainer = '#showResult';
+    private readonly errorContainer = '#showError';
+    
     // Transfer form elements
+    private readonly transferForm = '#transferForm';
     private readonly amountInput = 'input#amount';
     private readonly fromAccountSelect = 'select#fromAccountId';
     private readonly toAccountSelect = 'select#toAccountId';
     private readonly transferButton = 'input[value="Transfer"]';
+    private readonly amountError = 'p#amount\\.errors';
     
     // Result elements
-    private readonly transferCompleteTitle = `${this.rightPanel} h1.title`;
-    private readonly transferAmount = `${this.rightPanel} span#amount`;
-    private readonly fromAccountId = `${this.rightPanel} span#fromAccountId`;
-    private readonly toAccountId = `${this.rightPanel} span#toAccountId`;
-    private readonly errorMessage = `${this.rightPanel} p.error`;
+    private readonly transferCompleteTitle = `${this.resultContainer} h1.title`;
+    private readonly transferAmount = `${this.resultContainer} span#amountResult`;
+    private readonly fromAccountId = `${this.resultContainer} span#fromAccountIdResult`;
+    private readonly toAccountId = `${this.resultContainer} span#toAccountIdResult`;
+    
+    // Error elements
+    private readonly errorTitle = `${this.errorContainer} h1.title`;
+    private readonly errorMessage = `${this.errorContainer} p.error`;
 
     /**
      * Navigate to the transfer funds page
      */
     async goto() {
         await super.navigate('parabank/transfer.htm');
+        await this.page.waitForSelector(this.formContainer);
     }
 
     /**
@@ -54,11 +65,34 @@ export class TransferFundsPage extends BasePage {
     }
 
     /**
-     * Click transfer button
+     * Submit the transfer form
+     */
+    async submitTransfer() {
+        await this.locator(this.transferForm).evaluate(form => {
+            const submitEvent = new Event('submit');
+            form.dispatchEvent(submitEvent);
+        });
+        
+        // Wait for either success or error result
+        await Promise.race([
+            this.page.waitForSelector(`${this.resultContainer}:visible`),
+            this.page.waitForSelector(`${this.errorContainer}:visible`),
+            this.page.waitForSelector(`${this.amountError}:visible`)
+        ]);
+    }
+
+    /**
+     * Click transfer button (alternative to form submission)
      */
     async clickTransfer() {
         await this.locator(this.transferButton).click();
-        await this.waitForNavigation();
+        
+        // Wait for either success or error result
+        await Promise.race([
+            this.page.waitForSelector(`${this.resultContainer}:visible`),
+            this.page.waitForSelector(`${this.errorContainer}:visible`),
+            this.page.waitForSelector(`${this.amountError}:visible`)
+        ]);
     }
 
     /**
@@ -75,8 +109,7 @@ export class TransferFundsPage extends BasePage {
      * Check if transfer was successful
      */
     async isTransferSuccessful(): Promise<boolean> {
-        const title = await this.getTextContent(this.transferCompleteTitle);
-        return title.includes('Transfer Complete') || false;
+        return await this.isVisible(this.resultContainer);
     }
 
     /**
@@ -95,16 +128,53 @@ export class TransferFundsPage extends BasePage {
     }
 
     /**
-     * Get error message if transfer failed
-     */
-    async getErrorMessage(): Promise<string> {
-        return await this.getTextContent(this.errorMessage);
-    }
-
-    /**
      * Check if error message is displayed
      */
     async hasError(): Promise<boolean> {
-        return await this.isVisible(this.errorMessage);
+        return await this.isVisible(this.errorContainer);
+    }
+    
+    /**
+     * Get error message if transfer failed
+     */
+    async getErrorMessage(): Promise<string> {
+        if (await this.hasError()) {
+            return await this.getTextContent(this.errorMessage);
+        }
+        return '';
+    }
+    
+    /**
+     * Check if validation error is displayed
+     */
+    async hasValidationError(): Promise<boolean> {
+        return await this.isVisible(this.amountError);
+    }
+    
+    /**
+     * Get validation error message
+     */
+    async getValidationErrorMessage(): Promise<string> {
+        if (await this.hasValidationError()) {
+            return await this.getTextContent(this.amountError);
+        }
+        return '';
+    }
+    
+    /**
+     * Get all available accounts
+     */
+    async getAvailableAccounts(): Promise<string[]> {
+        const options = await this.locator(`${this.fromAccountSelect} option`).all();
+        const accounts: string[] = [];
+        
+        for (const option of options) {
+            const text = await option.textContent();
+            if (text) {
+                accounts.push(text.trim());
+            }
+        }
+        
+        return accounts;
     }
 } 
