@@ -31,7 +31,7 @@ export default defineConfig({
     trace: 'on',
     
     // Record video for all tests
-    video: 'on',
+    video: 'retain-on-failure',
     
     // Automatically capture console logs
     contextOptions: {

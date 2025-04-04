@@ -127,7 +127,7 @@ The `playwright.config.ts` file contains configuration for:
 
 ## CI/CD Integration
 
-### Option 1: Setting up Jenkins Locally (Windows)
+### Setting up Jenkins Locally (Windows)
 
 1. **Download and Install Jenkins:**
    - Go to the Jenkins download page: https://www.jenkins.io/download/
@@ -204,70 +204,6 @@ The `playwright.config.ts` file contains configuration for:
 
 ![ScreenShot](https://{drive.google.com/file/d/1vRK2QLgHu9HHKoyRNi2YUEEqKlYXXC3_/view?usp=sharing})
 
-
-### Option 2: Using Docker for Jenkins (Recommended)
-
-For a more consistent and isolated environment, you can run Jenkins in Docker:
-
-1. **Prerequisites:**
-   - Make sure Docker and Docker Compose are installed
-   - For Windows users, ensure Docker Desktop is running
-
-2. **Launch Jenkins Container:**
-   - The repository contains the necessary Docker configuration files
-   - Open a terminal or command prompt
-   - Navigate to the project root directory
-   - Run the following command:
-   ```bash
-   docker-compose up -d
-   ```
-   - This will build a custom Jenkins image with Node.js 22.x and all dependencies required for Playwright
-
-3. **Initial Jenkins Setup:**
-   - Once the container is running, access Jenkins at http://localhost:8080
-   - Retrieve the initial admin password by running:
-   ```bash
-   docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
-   ```
-   - Complete the setup wizard, installing the recommended plugins
-   - Create an admin user when prompted
-
-4. **Configure Jenkins:**
-   - Install additional plugins if needed:
-     - Go to "Manage Jenkins" > "Plugins" > "Available plugins"
-     - Install the "HTML Publisher" plugin if not already installed
-     - Also open script console and run
-     ```bash
-     System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
-     ```
-
-5. **Create a Pipeline Job:**
-   - Click "New Item", enter a name (e.g., "ParaBank-Playwright-Tests")
-   - Select "Pipeline" and click "OK"
-   - Under "Pipeline", select "Pipeline script from SCM"
-   - For "SCM", select "Git"
-   - For "Repository URL", enter `/workspace` (the project is already mounted in the container)
-   - For "Branch Specifier", enter `*/main` (or your branch name)
-   - For "Script Path", enter `Jenkinsfile`
-   - Save the configuration
-
-6. **Run the Pipeline:**
-   - Click "Build with Parameters" on your pipeline job
-   - Select parameters and click "Build"
-   - Monitor progress in the console output
-
-7. **View Test Results:**
-   - After completion, view test reports via the "Playwright Test Report" link
-
-8. **Stopping Jenkins:**
-   - When finished, stop the Jenkins container:
-   ```bash
-   docker-compose down
-   ```
-   - To remove all data, including volumes:
-   ```bash
-   docker-compose down -v
-   ```
 
 ## License
 
