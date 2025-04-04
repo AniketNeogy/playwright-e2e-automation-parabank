@@ -152,55 +152,182 @@ test('User Login - Login with valid credentials', async ({ page }) => {
 
 ## CI/CD Integration
 
-### Setting Up Jenkins Pipeline:
+### Setting up Jenkins Locally (Option 1)
 
-1. Install Jenkins on your local machine
-2. Create a new Pipeline job
-3. Create a Jenkinsfile in your repository root with the following content:
+1. **Download and Install Jenkins:**
+   - Go to the Jenkins download page: https://www.jenkins.io/download/
+   - Download the Windows installer (.msi file)
+   - Run the installer and follow the setup wizard:
+     - Accept the license agreement
+     - Choose an installation directory (avoid paths with spaces)
+     - Let it configure the port (default is 8080)
+     - Select "Install" and wait for completion
 
-```groovy
-pipeline {
-    agent any
-    
-    tools {
-        nodejs 'Node16'
-    }
-    
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-        
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-                sh 'npx playwright install --with-deps'
-            }
-        }
-        
-        stage('Run Tests') {
-            steps {
-                sh 'npx playwright test'
-            }
-        }
-        
-        stage('Generate Reports') {
-            steps {
-                publishHTML([
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'playwright-report',
-                    reportFiles: 'index.html',
-                    reportName: 'Playwright Test Report'
-                ])
-            }
-        }
-    }
-}
-```
+2. **Start and Configure Jenkins:**
+   - After installation, Jenkins should start automatically and open in your browser
+   - If it doesn't, access it at http://localhost:8080
+   - You'll see an "Unlock Jenkins" screen
+   - Find the admin password at: C:\Program Files\Jenkins\secrets\initialAdminPassword
+   - Copy this password and paste it into the "Administrator password" field
+   - Click "Continue"
+
+3. **Install Plugins:**
+   - On the "Customize Jenkins" screen, select "Install suggested plugins"
+   - Wait for plugin installation to complete
+   - Create an admin user when prompted (fill in username, password, etc.)
+   - Keep the Jenkins URL as http://localhost:8080 and click "Save and Finish"
+   - Click "Start using Jenkins" to access dashboard
+
+4. **Install Additional Required Plugins:**
+   - Go to "Manage Jenkins" > "Plugins" > "Available"
+   - Search for and install:
+     - "NodeJS Plugin"
+     - "HTML Publisher Plugin"
+     - Verify "Pipeline" and "Git" plugins are installed
+   - Click "Install without restart"
+
+5. **Configure NodeJS Tool:**
+   - Go to "Manage Jenkins" > "Tools"
+   - Under "NodeJS installations" click "Add NodeJS"
+   - Name it "NodeJS"
+   - Check "Install automatically"
+   - Select latest Node 22.x version
+   - Click "Save"
+
+6. **Create a Pipeline Job:**
+   - Click "New Item"
+   - Enter "ParaBank-Playwright-Tests" as name
+   - Select "Pipeline" and click "OK"
+   - Under "General", check "This project is parameterized"
+   - Add Choice Parameter:
+     - Name: BROWSER
+     - Choices: chromium, firefox, webkit, all
+   - Add Boolean Parameters:
+     - API_ONLY
+     - UI_ONLY  
+     - MOBILE
+   - Under "Pipeline":
+     - Select "Pipeline script from SCM"
+     - Select "Git" as SCM
+     - Enter your repository URL
+     - Branch Specifier: */main
+     - Script Path: Jenkinsfile
+   - Click "Save"
+
+7. **Run the Pipeline:**
+   - Go to "ParaBank-Playwright-Tests" job
+   - Click "Build with Parameters"
+   - Configure parameters:
+     - BROWSER: chromium (for first run)
+     - API_ONLY: false
+     - UI_ONLY: false
+     - MOBILE: false
+   - Click "Build"
+   - Monitor progress in Console Output
+
+8. **View Test Results:**
+   - After build completes, go to build page
+   - Click "Playwright Test Report" in sidebar
+   - Review test results, screenshots and videos
+
+### Option 2: Setting Up Jenkins with Docker (Recommended)
+
+For a more consistent and isolated environment, you can run Jenkins in Docker:
+
+1. **Prerequisites:**
+   - Make sure Docker and Docker Compose are installed
+   - For Windows users, ensure Docker Desktop is running
+
+2. **Launch Jenkins Container:**
+   - The repository contains the necessary Docker configuration files
+   - Open a terminal or command prompt
+   - Navigate to the project root directory
+   - Run the following command:
+   ```bash
+   docker-compose up -d
+   ```
+   - This will build a custom Jenkins image with Node.js 22.x and all dependencies required for Playwright
+
+3. **Initial Jenkins Setup:**
+   - Once the container is running, access Jenkins at http://localhost:8080
+   - Retrieve the initial admin password by running:
+   ```bash
+   docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+   ```
+   - Complete the setup wizard, installing the recommended plugins
+   - Create an admin user when prompted
+
+4. **Configure Jenkins:**
+   - Install additional plugins if needed:
+     - Go to "Manage Jenkins" > "Plugins" > "Available plugins"
+     - Install the "HTML Publisher" plugin if not already installed
+
+5. **Create a Pipeline Job:**
+   - Click "New Item", enter a name (e.g., "ParaBank-Playwright-Tests")
+   - Select "Pipeline" and click "OK"
+   - Under "Pipeline", select "Pipeline script from SCM"
+   - For "SCM", select "Git"
+   - For "Repository URL", enter `/workspace` (the project is already mounted in the container)
+   - For "Branch Specifier", enter `*/main` (or your branch name)
+   - For "Script Path", enter `Jenkinsfile`
+   - Save the configuration
+
+6. **Run the Pipeline:**
+   - Click "Build with Parameters" on your pipeline job
+   - Select parameters and click "Build"
+   - Monitor progress in the console output
+
+7. **View Test Results:**
+   - After completion, view test reports via the "Playwright Test Report" link
+
+8. **Stopping Jenkins:**
+   - When finished, stop the Jenkins container:
+   ```bash
+   docker-compose down
+   ```
+   - To remove all data, including volumes:
+   ```bash
+   docker-compose down -v
+   ```
+
+### Jenkinsfile Explanation:
+
+Our Jenkinsfile defines a pipeline with the following features:
+
+- **Specific Node.js Version:** Uses Node.js 22.14.0 via NVM for consistent execution
+- **Parameterized Builds:** Allows customizing test runs with browser selection and test type filters
+- **Multi-stage Pipeline:** Includes checkout, setup, dependencies installation, and test execution
+- **Comprehensive Reporting:** Generates and publishes HTML reports and archives test artifacts
+- **Error Handling:** Captures test failures without stopping the build
+- **Workspace Cleanup:** Maintains a clean environment between runs
+
+### Troubleshooting Jenkins Setup:
+
+1. **Docker Issues:**
+   - If you encounter permission errors with Docker, make sure your user has Docker permissions
+   - On Windows, ensure Docker Desktop is running before starting the container
+   - If port 8080 is already in use, modify the port mapping in docker-compose.yml
+
+2. **NVM Installation Issues:**
+   - If NVM installation fails, ensure Jenkins has proper internet access
+   - Try manually installing NVM in the Jenkins user's home directory
+
+3. **Dependency Installation Failures:**
+   - Check that Node.js and npm are working correctly in the Jenkins environment
+   - Ensure Jenkins has sufficient permissions to install packages
+
+4. **Browser Installation Problems:**
+   - If browser installation fails, you may need to install additional system dependencies
+   - For Debian/Ubuntu: `apt-get install ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils`
+
+### Customizing the Pipeline:
+
+You can modify the Jenkinsfile to:
+- Add email notifications for build status
+- Integrate with Slack or other messaging platforms
+- Add code quality checks or other testing tools
+- Create parallel test execution for faster feedback
+- Configure environment-specific settings
 
 ## Best Practices Followed
 
