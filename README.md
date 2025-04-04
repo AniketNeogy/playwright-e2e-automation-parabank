@@ -200,9 +200,13 @@ The `playwright.config.ts` file contains configuration for:
      - Click "Playwright Test Report" link
      - Review test execution details, screenshots and traces
 
-![ScreenShot](https://{drive.google.com/file/d/1CPMhwG270OaodPRO-mdP8EIs6-s1c5_q/view?usp=sharing})
+<div align="center">
+    <img src="/artefacts/JenkinsBuild.png" width="400px"</img> 
+</div>
 
-![ScreenShot](https://{drive.google.com/file/d/1vRK2QLgHu9HHKoyRNi2YUEEqKlYXXC3_/view?usp=sharing})
+<div align="center">
+    <img src="/artefacts/JenkinsTestReport.png" width="400px"</img> 
+</div>
 
 
 ## License
