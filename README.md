@@ -201,40 +201,15 @@ test('User Login - Login with valid credentials', async ({ page }) => {
    - In the pipeline configuration:
 
 7. **Configure Pipeline:**
-   - **Important for Windows**: In the pipeline configuration, select one of these options:
-   
-   **Option A: Use Direct Pipeline Script**
-   - Under "Pipeline", select "Pipeline script"
-   - Click "Pipeline Syntax" link to open the syntax generator
-   - Select "checkout: Check out from version control" from the sample step dropdown
-   - Fill in your repository details, click "Generate Pipeline Script"
-   - Use the generated script as part of your pipeline definition
-   - Click "Save"
-   
-   **Option B: Use SCM with Local Filepath**
+   - **Important for Windows**: 
    - Under "Pipeline", select "Pipeline script from SCM"
    - Select "Git" as SCM
-   - For local repositories, set Repository URL as:
+   - set Repository URL as:
      ```
-     file:///D:/Workspace/cursor-workspace/playwright-e2e-automation-parabank
+     https://github.com/AniketNeogy/playwright-e2e-automation-parabank
      ```
-     (Note the triple slashes and capital drive letter)
    - Set "Script Path" to "Jenkinsfile"
    - Click "Save"
-   
-   **Option C: Direct File System Approach**
-   - Under "Pipeline", select "Pipeline script" (not from SCM)
-   - Paste the entire contents of your Jenkinsfile in the script area
-   - Click "Save"
-
-8. **Troubleshooting Windows-Specific Issues:**
-   - If Jenkins cannot find your Jenkinsfile, verify these settings:
-     - The repository path format is correct (file:/// with three slashes)
-     - The drive letter is capitalized (D: not d:)
-     - Try Option C above as a fallback approach
-   - If you see "sh not found" errors, ensure your Jenkinsfile uses Windows commands:
-     - Use `bat` instead of `sh` for command execution
-     - Replace bash commands with Windows PowerShell or CMD equivalents
 
 ### Option 2: Using Docker for Jenkins (Recommended)
 
