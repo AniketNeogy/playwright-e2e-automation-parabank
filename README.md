@@ -124,31 +124,6 @@ The `playwright.config.ts` file contains configuration for:
 - HTML reporting
 - Project-specific configurations for different browsers/devices
 
-You can modify these settings to suit your testing needs.
-
-## Creating New Tests
-
-### UI Tests
-1. Create page objects for any new pages in the `page-objects` directory
-2. Create test files in the `tests` directory
-3. Use the Page Object Model pattern for maintainable tests
-
-Example:
-```typescript
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../page-objects/login.page';
-
-test('User Login - Login with valid credentials', async ({ page }) => {
-  const loginPage = new LoginPage(page);
-  await loginPage.navigate();
-  await loginPage.login('username', 'password');
-  expect(await loginPage.isLoggedIn()).toBeTruthy();
-});
-```
-
-### API Tests
-1. Use the ApiUtils class in `utils/api-utils.ts` for API interactions
-2. Create test files in the `tests` directory with API assertions
 
 ## CI/CD Integration
 
@@ -211,6 +186,25 @@ test('User Login - Login with valid credentials', async ({ page }) => {
    - Set "Script Path" to "Jenkinsfile"
    - Click "Save"
 
+8. **Run the Pipeline:**
+   - Click "Build with Parameters" on your pipeline job
+   - Select desired parameters:
+     - BROWSER: Choose browser to run tests (chromium/firefox/webkit/all)
+     - API_ONLY: Run only API tests
+     - UI_ONLY: Run only UI tests  
+     - MOBILE: Run tests on mobile viewport
+   - Click "Build"
+   - Monitor build progress in console output
+   - View test results after completion:
+     - Click on build number
+     - Click "Playwright Test Report" link
+     - Review test execution details, screenshots and traces
+
+![ScreenShot](https://{drive.google.com/file/d/1CPMhwG270OaodPRO-mdP8EIs6-s1c5_q/view?usp=sharing})
+
+![ScreenShot](https://{drive.google.com/file/d/1vRK2QLgHu9HHKoyRNi2YUEEqKlYXXC3_/view?usp=sharing})
+
+
 ### Option 2: Using Docker for Jenkins (Recommended)
 
 For a more consistent and isolated environment, you can run Jenkins in Docker:
@@ -242,6 +236,10 @@ For a more consistent and isolated environment, you can run Jenkins in Docker:
    - Install additional plugins if needed:
      - Go to "Manage Jenkins" > "Plugins" > "Available plugins"
      - Install the "HTML Publisher" plugin if not already installed
+     - Also open script console and run
+     ```bash
+     System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
+     ```
 
 5. **Create a Pipeline Job:**
    - Click "New Item", enter a name (e.g., "ParaBank-Playwright-Tests")
@@ -270,72 +268,6 @@ For a more consistent and isolated environment, you can run Jenkins in Docker:
    ```bash
    docker-compose down -v
    ```
-
-### Jenkinsfile Explanation:
-
-Our Jenkinsfile defines a pipeline with the following features:
-
-- **Specific Node.js Version:** Uses Node.js 22.14.0 via NVM for consistent execution
-- **Parameterized Builds:** Allows customizing test runs with browser selection and test type filters
-- **Multi-stage Pipeline:** Includes checkout, setup, dependencies installation, and test execution
-- **Comprehensive Reporting:** Generates and publishes HTML reports and archives test artifacts
-- **Error Handling:** Captures test failures without stopping the build
-- **Workspace Cleanup:** Maintains a clean environment between runs
-
-### Troubleshooting Jenkins Setup:
-
-1. **Docker Issues:**
-   - If you encounter permission errors with Docker, make sure your user has Docker permissions
-   - On Windows, ensure Docker Desktop is running before starting the container
-   - If port 8080 is already in use, modify the port mapping in docker-compose.yml
-
-2. **NVM Installation Issues:**
-   - If NVM installation fails, ensure Jenkins has proper internet access
-   - Try manually installing NVM in the Jenkins user's home directory
-
-3. **Dependency Installation Failures:**
-   - Check that Node.js and npm are working correctly in the Jenkins environment
-   - Ensure Jenkins has sufficient permissions to install packages
-
-4. **Browser Installation Problems:**
-   - If browser installation fails, you may need to install additional system dependencies
-   - For Debian/Ubuntu: `apt-get install ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils`
-
-### Customizing the Pipeline:
-
-You can modify the Jenkinsfile to:
-- Add email notifications for build status
-- Integrate with Slack or other messaging platforms
-- Add code quality checks or other testing tools
-- Create parallel test execution for faster feedback
-- Configure environment-specific settings
-
-## Best Practices Followed
-
-- **Modularity**: Clear separation of concerns with the Page Object Model
-- **Reliability**: Stable selectors and appropriate waiting strategies
-- **Maintainability**: Easy to extend and modify with organized structure
-- **Reusability**: Common functions extracted into reusable utilities
-- **Readability**: Clear naming conventions and code organization
-- **Type Safety**: TypeScript interfaces for all data structures
-- **Parallel Execution**: Tests designed to run independently
-- **Cross-Browser Compatibility**: Tests run across multiple browsers and devices
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Tests Timing Out**: 
-   - Increase the timeout in `playwright.config.ts`
-   - Add appropriate waits in page objects
-
-2. **Selector Not Found**:
-   - Update selectors if the application UI has changed
-   - Use more stable selectors like data-testid, IDs, or accessibility roles
-
-3. **API Tests Failing**:
-   - Check if session cookies are being properly passed
-   - Verify API endpoint URLs and request formats
 
 ## License
 
