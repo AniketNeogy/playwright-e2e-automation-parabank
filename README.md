@@ -152,7 +152,7 @@ test('User Login - Login with valid credentials', async ({ page }) => {
 
 ## CI/CD Integration
 
-### Setting up Jenkins Locally (Option 1)
+### Option 1: Setting up Jenkins Locally (Windows)
 
 1. **Download and Install Jenkins:**
    - Go to the Jenkins download page: https://www.jenkins.io/download/
@@ -179,7 +179,7 @@ test('User Login - Login with valid credentials', async ({ page }) => {
    - Click "Start using Jenkins" to access dashboard
 
 4. **Install Additional Required Plugins:**
-   - Go to "Manage Jenkins" > "Plugins" > "Available"
+   - Go to "Manage Jenkins" > "Plugins" > "Available plugins"
    - Search for and install:
      - "NodeJS Plugin"
      - "HTML Publisher Plugin"
@@ -189,7 +189,7 @@ test('User Login - Login with valid credentials', async ({ page }) => {
 5. **Configure NodeJS Tool:**
    - Go to "Manage Jenkins" > "Tools"
    - Under "NodeJS installations" click "Add NodeJS"
-   - Name it "NodeJS"
+   - Name it "NodeJS" 
    - Check "Install automatically"
    - Select latest Node 22.x version
    - Click "Save"
@@ -198,39 +198,45 @@ test('User Login - Login with valid credentials', async ({ page }) => {
    - Click "New Item"
    - Enter "ParaBank-Playwright-Tests" as name
    - Select "Pipeline" and click "OK"
-   - Under "General", check "This project is parameterized"
-   - Add Choice Parameter:
-     - Name: BROWSER
-     - Choices: chromium, firefox, webkit, all
-   - Add Boolean Parameters:
-     - API_ONLY
-     - UI_ONLY  
-     - MOBILE
-   - Under "Pipeline":
-     - Select "Pipeline script from SCM"
-     - Select "Git" as SCM
-     - Enter your repository URL
-     - Branch Specifier: */main
-     - Script Path: Jenkinsfile
+   - In the pipeline configuration:
+
+7. **Configure Pipeline:**
+   - **Important for Windows**: In the pipeline configuration, select one of these options:
+   
+   **Option A: Use Direct Pipeline Script**
+   - Under "Pipeline", select "Pipeline script"
+   - Click "Pipeline Syntax" link to open the syntax generator
+   - Select "checkout: Check out from version control" from the sample step dropdown
+   - Fill in your repository details, click "Generate Pipeline Script"
+   - Use the generated script as part of your pipeline definition
+   - Click "Save"
+   
+   **Option B: Use SCM with Local Filepath**
+   - Under "Pipeline", select "Pipeline script from SCM"
+   - Select "Git" as SCM
+   - For local repositories, set Repository URL as:
+     ```
+     file:///D:/Workspace/cursor-workspace/playwright-e2e-automation-parabank
+     ```
+     (Note the triple slashes and capital drive letter)
+   - Set "Script Path" to "Jenkinsfile"
+   - Click "Save"
+   
+   **Option C: Direct File System Approach**
+   - Under "Pipeline", select "Pipeline script" (not from SCM)
+   - Paste the entire contents of your Jenkinsfile in the script area
    - Click "Save"
 
-7. **Run the Pipeline:**
-   - Go to "ParaBank-Playwright-Tests" job
-   - Click "Build with Parameters"
-   - Configure parameters:
-     - BROWSER: chromium (for first run)
-     - API_ONLY: false
-     - UI_ONLY: false
-     - MOBILE: false
-   - Click "Build"
-   - Monitor progress in Console Output
+8. **Troubleshooting Windows-Specific Issues:**
+   - If Jenkins cannot find your Jenkinsfile, verify these settings:
+     - The repository path format is correct (file:/// with three slashes)
+     - The drive letter is capitalized (D: not d:)
+     - Try Option C above as a fallback approach
+   - If you see "sh not found" errors, ensure your Jenkinsfile uses Windows commands:
+     - Use `bat` instead of `sh` for command execution
+     - Replace bash commands with Windows PowerShell or CMD equivalents
 
-8. **View Test Results:**
-   - After build completes, go to build page
-   - Click "Playwright Test Report" in sidebar
-   - Review test results, screenshots and videos
-
-### Option 2: Setting Up Jenkins with Docker (Recommended)
+### Option 2: Using Docker for Jenkins (Recommended)
 
 For a more consistent and isolated environment, you can run Jenkins in Docker:
 

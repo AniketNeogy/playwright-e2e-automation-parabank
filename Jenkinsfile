@@ -1,17 +1,13 @@
 pipeline {
     agent any
     
-    // We'll use environment variables to specify Node.js version
     environment {
         NODE_VERSION = '22.14.0'
     }
     
     options {
-        // Keep the build history and artifacts for 10 days
         buildDiscarder(logRotator(numToKeepStr: '10'))
-        // Don't run concurrent builds for the same branch
         disableConcurrentBuilds()
-        // Set timeout to prevent hanging builds
         timeout(time: 60, unit: 'MINUTES')
     }
     
@@ -25,7 +21,6 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout code from repository
                 checkout scm
                 echo 'Code checkout completed'
             }
@@ -33,38 +28,16 @@ pipeline {
         
         stage('Setup Node.js') {
             steps {
-                // Use NVM to install and use specific Node.js version
-                sh '''
-                    # Install NVM if not available
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] || curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                    
-                    # Install and use specific Node.js version
-                    nvm install ${NODE_VERSION}
-                    nvm use ${NODE_VERSION}
-                    
-                    # Verify Node.js and npm versions
-                    node --version
-                    npm --version
-                '''
+                bat 'node --version || echo Node.js not found'
+                bat 'npm --version || echo npm not found'
+                bat 'where node || echo Node.js path not found'
             }
         }
         
         stage('Install Dependencies') {
             steps {
-                // Use NVM with specific Node.js version for installing dependencies
-                sh '''
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                    nvm use ${NODE_VERSION}
-                    
-                    # Install npm dependencies
-                    npm ci
-                    
-                    # Install Playwright browsers with dependencies
-                    npx playwright install --with-deps
-                '''
+                bat 'npm ci'
+                bat 'npx playwright install --with-deps'
                 echo 'Dependencies installation completed'
             }
         }
@@ -81,28 +54,17 @@ pipeline {
                         testCommand = 'npx playwright test --grep-invert "api\\.spec\\.ts"'
                     }
                     
-                    // Add browser selection
+                    // Add browser selection with CORRECT project names
                     if (params.BROWSER != 'all') {
-                        if (params.MOBILE && params.BROWSER == 'chromium') {
-                            testCommand += ' --project=ui-mobile-chrome'
-                        } else if (params.MOBILE && params.BROWSER == 'webkit') {
-                            testCommand += ' --project=ui-mobile-safari'
+                        if (params.MOBILE && (params.BROWSER == 'chromium' || params.BROWSER == 'webkit')) {
+                            testCommand += ' --project="Mobile Safari - iPhone 12"'
                         } else {
-                            testCommand += " --project=ui-${params.BROWSER}"
+                            testCommand += " --project=${params.BROWSER}"
                         }
-                    } else if (params.MOBILE) {
-                        testCommand += ' --project=ui-mobile-chrome --project=ui-mobile-safari'
                     }
                     
                     try {
-                        // Run the tests with the specific Node.js version
-                        sh """
-                            export NVM_DIR="$HOME/.nvm"
-                            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                            nvm use ${NODE_VERSION}
-                            
-                            ${testCommand}
-                        """
+                        bat "${testCommand}"
                     } catch (Exception e) {
                         echo "Tests failed with error: ${e.message}"
                         currentBuild.result = 'UNSTABLE'
@@ -114,7 +76,6 @@ pipeline {
     
     post {
         always {
-            // Archive test results and generate reports
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
@@ -125,7 +86,6 @@ pipeline {
                 reportTitles: 'Test Results'
             ])
             
-            // Archive test artifacts
             archiveArtifacts(
                 artifacts: 'playwright-report/**/*.*,test-results/**/*.*', 
                 allowEmptyArchive: true
@@ -145,7 +105,6 @@ pipeline {
         }
         
         cleanup {
-            // Clean workspace
             cleanWs(
                 cleanWhenNotBuilt: true,
                 deleteDirs: true,
@@ -154,4 +113,4 @@ pipeline {
             )
         }
     }
-} 
+}
